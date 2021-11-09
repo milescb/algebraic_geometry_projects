@@ -1,7 +1,7 @@
 # Implementing Homotopy Continuation
 # Author: Miles Cochran-Branon
 # Date: 11/9/21
-# For additional information see `project.ipynb`. 
+# For additional information see `homotopy_continuation.pdf`. 
 
 using HomotopyContinuation
 
