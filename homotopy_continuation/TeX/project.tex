@@ -1,0 +1,501 @@
+\documentclass[11pt]{article}
+
+\include{TeX_code/preamble.tex}
+
+\title{Homotopy Continuation!}
+\author{Miles Cochran-Branson}
+\date{Friday, November 12}
+
+\begin{document}
+    
+\maketitle
+  
+\tableofcontents
+    
+    \hypertarget{implementing-homotopy-continuation-in-julia}{%
+\section{Implementing Homotopy Continuation in
+Julia}\label{implementing-homotopy-continuation-in-julia}}
+
+Say we're interested in solving the system of equations
+
+\[
+\begin{split}
+f_1(x, y) & = (x^4 + y^4 − 1)(x^2 + y^2 − 2) + x^5y \\
+f_2(x, y) & = x^2 + 2xy^2 - 2y^2 - \frac{1}{2}. 
+\end{split}
+\]
+
+This can very simply be done using hometopy continuation and the package
+\texttt{HometopyContinuation.jl} in \texttt{Julia} as follows
+
+\input{TeX_code/code1.tex}
+        
+    and we can display the solutions
+
+\input{TeX_code/code2.tex}
+
+    \hypertarget{implementing-our-own-method}{%
+\subsection{Implementing our own
+method}\label{implementing-our-own-method}}
+
+In order to better understand this process we implement our own method
+for solving. This involves first taking an euler step, that is,
+essentially solving a system of ODEs using the Euler method, and then
+correcting our quasi-solution by using the Newton method.
+
+The implementation starts by fixing a \emph{Homotopy}, \(H(x,t)\) which
+can be expressed in the form
+
+\[
+    H(x,t) = t \cdot f(x) + (1 - t) \cdot g(x)
+\]
+
+where \(t \in [0,1] \subset \mathbb{R}\) , \(f(x)\) is our original
+system, and \(g(x)\) is a simpler system of equations which we
+\emph{know} the solution to. We then need to advance time by some
+\(\Delta t\) and end up with the set of differential equations defined
+by the Euler method as
+
+\[
+    H(x + \Delta x, t + \Delta t) \approx H(x,t) + \frac{\partial H}{\partial x} \Delta x
+ + \frac{\partial H}{\partial t} \Delta t. 
+ \]
+
+Note that we know that we have \(H(x,t) = 0\) as we started with a
+solution! Additionaly, we require that
+\(H(x + \Delta x, t + \Delta t) = 0\) and we know what our time step
+\(\Delta t\) is. Thus, we need only solve the system
+
+\[
+    \frac{\partial H}{\partial x} \Delta x = -\frac{\partial H}{\partial t} \Delta t
+\]
+
+for \(\Delta x\). We then update our values of \(t\) and \(x\) by
+incrementing by \(\Delta t\) and \(\Delta x\) and then implement Newton
+to find values of \(t\) and \(x\) that lie on our curve. Finally, we
+step over all \(\Delta t\) until we get to \(t = 1\) at which point
+\(x\) will be a solution to our orriginal system!
+
+    \hypertarget{euler-step}{%
+\subsubsection{Euler Step}\label{euler-step}}
+
+We write a function to compute a Euler step.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{4}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k}{function} \PY{n}{euler\PYZus{}step}\PY{p}{(}\PY{n}{H}\PY{o}{::}\PY{k+kt}{System}\PY{p}{,} \PY{n}{Δt}\PY{o}{::}\PY{k+kt}{Float64}\PY{p}{,} \PY{n}{x}\PY{o}{::}\PY{k+kt}{Vector}\PY{p}{,} \PY{n}{t}\PY{o}{::}\PY{k+kt}{Float64}\PY{p}{)}
+    
+    \PY{c}{\PYZsh{}make four element Vector}
+    \PY{n}{xt} \PY{o}{=} \PY{n}{append!}\PY{p}{(}\PY{n}{x}\PY{p}{,} \PY{n}{t}\PY{p}{)}
+
+    \PY{c}{\PYZsh{}get indices for vector subsetting}
+    \PY{n}{index} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+    \PY{k}{for} \PY{n}{i} \PY{k}{in} \PY{l+m+mi}{2}\PY{o}{:}\PY{n}{length}\PY{p}{(}\PY{n}{x}\PY{p}{)}
+        \PY{n}{append!}\PY{p}{(}\PY{n}{index}\PY{p}{,} \PY{n}{i}\PY{p}{)}
+    \PY{k}{end}
+
+    \PY{c}{\PYZsh{}make jacobian and separate out dH/dx and dH/dt}
+    \PY{n}{J} \PY{o}{=} \PY{n}{jacobian}\PY{p}{(}\PY{n}{H}\PY{p}{,} \PY{n}{xt}\PY{p}{)}
+    \PY{n}{∂H∂x} \PY{o}{=} \PY{n}{J}\PY{p}{[}\PY{o}{:}\PY{p}{,}\PY{n}{index}\PY{p}{]}
+    \PY{n}{∂H∂t} \PY{o}{=} \PY{n}{J}\PY{p}{[}\PY{o}{:}\PY{p}{,}\PY{l+m+mi}{1}\PY{p}{]}
+
+    \PY{c}{\PYZsh{}set up system and solve for Δx}
+    \PY{n}{Δx} \PY{o}{=} \PY{n}{∂H∂x} \PY{o}{\PYZbs{}} \PY{o}{\PYZhy{}}\PY{p}{(}\PY{n}{∂H∂t} \PY{o}{*} \PY{n}{Δt}\PY{p}{)}
+
+    \PY{c}{\PYZsh{}update values for x and t}
+    \PY{n}{x} \PY{o}{=} \PY{n}{xt}\PY{p}{[}\PY{n}{index} \PY{o}{.\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{]} \PY{o}{+} \PY{n}{Δx}
+    \PY{n}{t} \PY{o}{=} \PY{n}{t} \PY{o}{+} \PY{n}{Δt}
+
+    \PY{k}{return} \PY{n}{x}\PY{p}{,} \PY{n}{t}
+
+\PY{k}{end}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{4}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+euler\_step (generic function with 1 method)
+\end{Verbatim}
+\end{tcolorbox}
+        
+    Notice that this function can take systems / vectors of any length and
+is thus a general solution. Let's just make sure this works in practice
+as follows
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{5}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{time} \PY{o}{=} \PY{l+m+mf}{0.0}\PY{p}{;}
+\PY{n}{Δt} \PY{o}{=} \PY{l+m+mf}{0.1}\PY{p}{;} 
+
+\PY{n}{x} \PY{o}{=} \PY{p}{[}\PY{l+m+mf}{1.0}\PY{p}{,} \PY{l+m+mf}{2.0}\PY{p}{]}
+
+\PY{n+nd}{@var} \PY{n}{x1} \PY{n}{x2} \PY{n}{t}
+\PY{n}{f1} \PY{o}{=} \PY{n}{t} \PY{o}{*} \PY{n}{x1}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{+} \PY{n}{x2}
+\PY{n}{f2} \PY{o}{=} \PY{n}{x1} \PY{o}{+} \PY{n}{x2} \PY{o}{*} \PY{n}{t}
+
+\PY{n}{F} \PY{o}{=} \PY{n}{System}\PY{p}{(}\PY{p}{[}\PY{n}{f1}\PY{p}{,} \PY{n}{f2}\PY{p}{]}\PY{p}{)}
+
+\PY{n}{start}\PY{p}{,} \PY{n}{time} \PY{o}{=} \PY{n}{euler\PYZus{}step}\PY{p}{(}\PY{n}{F}\PY{p}{,} \PY{n}{Δt}\PY{p}{,} \PY{n}{x}\PY{p}{,} \PY{n}{time}\PY{p}{)}
+\PY{n}{start}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{5}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+2-element Vector\{Float64\}:
+ 1.1333333333333333
+ 1.8666666666666667
+\end{Verbatim}
+\end{tcolorbox}
+        
+    and we see that this works to first order approximation.
+
+    \hypertarget{newton-method}{%
+\subsubsection{Newton Method}\label{newton-method}}
+
+We write a function to implement the newton method. This implementation
+requires \texttt{HomotopyContinuation.jl}.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{6}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k}{function} \PY{n}{newton\PYZus{}solve}\PY{p}{(}\PY{n}{start}\PY{o}{::}\PY{k+kt}{Vector}\PY{p}{,} \PY{n}{F}\PY{o}{::}\PY{k+kt}{System}\PY{p}{,} \PY{n}{tolerance}\PY{o}{::}\PY{k+kt}{Float64} \PY{o}{=} \PY{l+m+mf}{1e\PYZhy{}15}\PY{p}{)}
+
+    \PY{c}{\PYZsh{}evaluate initial point}
+    \PY{n}{tol} \PY{o}{=} \PY{n}{evaluate}\PY{p}{(}\PY{n}{F}\PY{p}{,} \PY{n}{start}\PY{p}{)}
+
+    \PY{c}{\PYZsh{}check if initial point is solution}
+    \PY{n}{not\PYZus{}minimized} \PY{o}{=} \PY{n+nb}{true}
+    \PY{k}{if} \PY{n}{tol} \PY{o}{==} \PY{n}{zeros}\PY{p}{(}\PY{n}{length}\PY{p}{(}\PY{n}{tol}\PY{p}{)}\PY{p}{)}
+        \PY{n}{not\PYZus{}minimized} \PY{o}{=} \PY{n+nb}{false}
+    \PY{k}{end}
+    
+    \PY{n}{i} \PY{o}{=} \PY{l+m+mi}{0}
+    \PY{k}{while} \PY{p}{(}\PY{n}{not\PYZus{}minimized} \PY{o}{\PYZam{}\PYZam{}} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{l+m+mi}{501}\PY{p}{)}
+        \PY{c}{\PYZsh{}test for convergence }
+        \PY{k}{if} \PY{n}{i} \PY{o}{==} \PY{l+m+mi}{500}
+            \PY{n}{error}\PY{p}{(}\PY{l+s}{\PYZdq{}}\PY{l+s}{Algorithm did not converge!}\PY{l+s}{\PYZdq{}}\PY{p}{)}
+        \PY{k}{end}
+
+        \PY{c}{\PYZsh{}solve linear system}
+        \PY{n}{J} \PY{o}{=} \PY{n}{jacobian}\PY{p}{(}\PY{n}{F}\PY{p}{,} \PY{n}{start}\PY{p}{)}
+        \PY{n}{start\PYZus{}new} \PY{o}{=} \PY{n}{J} \PY{o}{\PYZbs{}} \PY{o}{\PYZhy{}}\PY{n}{evaluate}\PY{p}{(}\PY{n}{F}\PY{p}{,} \PY{n}{start}\PY{p}{)}
+
+        \PY{c}{\PYZsh{}update values}
+        \PY{k}{for} \PY{n}{i} \PY{k}{in} \PY{l+m+mi}{1}\PY{o}{:}\PY{n}{length}\PY{p}{(}\PY{n}{start}\PY{p}{)}
+            \PY{n}{start}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{=} \PY{n}{start\PYZus{}new}\PY{p}{[}\PY{n}{i}\PY{p}{]} \PY{o}{+} \PY{n}{start}\PY{p}{[}\PY{n}{i}\PY{p}{]}
+        \PY{k}{end}
+        \PY{n}{tol} \PY{o}{=} \PY{n}{evaluate}\PY{p}{(}\PY{n}{F}\PY{p}{,} \PY{n}{start}\PY{p}{)}
+
+        \PY{c}{\PYZsh{}test if tolerance is reached}
+        \PY{n}{not\PYZus{}minimized} \PY{o}{=} \PY{n+nb}{false}
+        \PY{k}{for} \PY{n}{i} \PY{k}{in} \PY{l+m+mi}{1}\PY{o}{:}\PY{n}{length}\PY{p}{(}\PY{n}{tol}\PY{p}{)}
+            \PY{k}{if} \PY{n}{abs}\PY{p}{(}\PY{n}{tol}\PY{p}{[}\PY{n}{i}\PY{p}{]}\PY{p}{)} \PY{o}{\PYZgt{}} \PY{n}{tolerance}
+                \PY{n}{not\PYZus{}minimized} \PY{o}{=} \PY{n+nb}{true}
+            \PY{k}{end}
+        \PY{k}{end}
+        \PY{n}{i} \PY{o}{+=} \PY{l+m+mi}{1}
+    \PY{k}{end}
+
+    \PY{k}{return} \PY{n}{start}
+\PY{k}{end}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{6}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+newton\_solve (generic function with 2 methods)
+\end{Verbatim}
+\end{tcolorbox}
+        
+    We note that this function also is general and can solve any problem. We
+verify this works on the complex numbers by
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{7}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n+nd}{@var} \PY{n}{x} \PY{n}{y}
+\PY{n}{f1} \PY{o}{=} \PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{+} \PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{3} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}
+\PY{n}{f2} \PY{o}{=} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{x} \PY{o}{\PYZhy{}} \PY{n}{y}
+\PY{n}{F} \PY{o}{=} \PY{n}{System}\PY{p}{(}\PY{p}{[}\PY{n}{f1}\PY{p}{,} \PY{n}{f2}\PY{p}{]}\PY{p}{)}
+\PY{n}{p} \PY{o}{=} \PY{n}{randn}\PY{p}{(}\PY{k+kt}{ComplexF64}\PY{p}{,} \PY{l+m+mi}{2}\PY{p}{)}
+
+\PY{n}{newton\PYZus{}solve}\PY{p}{(}\PY{n}{p}\PY{p}{,} \PY{n}{F}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{7}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+2-element Vector\{ComplexF64\}:
+ -0.2933069324711349 - 0.4298373375930675im
+ -0.5866138649422697 - 0.859674675186135im
+\end{Verbatim}
+\end{tcolorbox}
+        
+    and check our answer using \texttt{HomotopyContinuation.jl}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{8}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{S} \PY{o}{=} \PY{n}{System}\PY{p}{(}\PY{p}{[}\PY{n}{f1}\PY{p}{,} \PY{n}{f2}\PY{p}{]}\PY{p}{)}
+\PY{n}{result} \PY{o}{=} \PY{n}{solve}\PY{p}{(}\PY{n}{S}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+\textcolor{ansi-green}{Tracking 3 paths{\ldots} 100\%|███████████████████████████████| Time:
+0:00:17}
+\textcolor{ansi-blue}{  \# paths tracked:                  3}
+\textcolor{ansi-blue}{  \# non-singular solutions (real):  3 (1)}
+\textcolor{ansi-blue}{  \# singular endpoints (real):      0 (0)}
+\textcolor{ansi-blue}{  \# total solutions (real):         3 (1)}
+    \end{Verbatim}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{8}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+Result with 3 solutions
+=======================
+• 3 paths tracked
+• 3 non-singular solutions (1 real)
+• random\_seed: 0x5093c109
+• start\_system: :polyhedral
+
+\end{Verbatim}
+\end{tcolorbox}
+        
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{9}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{solutions}\PY{p}{(}\PY{n}{result}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{9}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+3-element Vector\{Vector\{ComplexF64\}\}:
+ [-0.2933069324711348 - 0.42983733759306764im, -0.5866138649422696 -
+0.8596746751861353im]
+ [0.4616138649422696 - 2.407412430484045e-35im, 0.9232277298845392 -
+4.81482486096809e-35im]
+ [-0.2933069324711348 + 0.42983733759306764im, -0.5866138649422696 +
+0.8596746751861353im]
+\end{Verbatim}
+\end{tcolorbox}
+        
+    \hypertarget{path-tracking-and-solving}{%
+\subsubsection{Path Tracking and
+Solving!}\label{path-tracking-and-solving}}
+
+We finally combine the two functions and return to the orriginal problem
+to solve the system of two equations. We will use
+
+\[
+f(x, y) = \begin{pmatrix} f_1(x,y) \\ f_2(x, y) \end{pmatrix}
+\]
+
+Notice that we need some \(g(x)\). Let's use
+
+\[
+g(x, y) = \begin{pmatrix} x^6 - 1 \\ y^3 - 1 \end{pmatrix}
+\]
+
+which we \emph{know} has solutions
+
+\[
+    x = e^{ik\frac{2\pi}{6}}, k = 0,1,2,3,4,5
+\]
+
+and
+
+\[
+    y = e^{i\ell\frac{2\pi}{3}}, \ell = 0,1,2
+\]
+
+and we see that we will have 18 total solutions. Let's implement this
+model and find the solution when \(k = 0, \ell = 0\) to see if we get a
+solution that \texttt{HomotopyContinuation.jl} got.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{10}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k}{function} \PY{n}{path\PYZus{}track}\PY{p}{(}\PY{n}{H}\PY{o}{::}\PY{k+kt}{System}\PY{p}{,} \PY{n}{start}\PY{o}{::}\PY{k+kt}{Vector}\PY{p}{,} \PY{n}{Δt}\PY{o}{::}\PY{k+kt}{Float64}\PY{p}{)}
+
+    \PY{n}{time} \PY{o}{=} \PY{l+m+mf}{0.0}
+    \PY{n}{tot\PYZus{}steps} \PY{o}{=} \PY{l+m+mi}{1} \PY{o}{/} \PY{n}{Δt}
+
+    \PY{n}{i} \PY{o}{=} \PY{l+m+mi}{0}
+    \PY{k}{while} \PY{n}{i} \PY{o}{\PYZlt{}} \PY{n}{tot\PYZus{}steps}
+        \PY{n}{start}\PY{p}{,} \PY{n}{time} \PY{o}{=} \PY{n}{euler\PYZus{}step}\PY{p}{(}\PY{n}{H}\PY{p}{,} \PY{n}{Δt}\PY{p}{,} \PY{n}{start}\PY{p}{,} \PY{n}{time}\PY{p}{)}
+        \PY{n}{start} \PY{o}{=} \PY{n}{newton\PYZus{}solve}\PY{p}{(}\PY{n}{start}\PY{p}{,} \PY{n}{System}\PY{p}{(}\PY{n}{evaluate}\PY{p}{(}\PY{n}{H}\PY{p}{,} \PY{p}{[}\PY{n}{time}\PY{p}{,} \PY{n}{x}\PY{p}{,} \PY{n}{y}\PY{p}{]}\PY{p}{)}\PY{p}{)}\PY{p}{,} \PY{l+m+mf}{1e\PYZhy{}12}\PY{p}{)}
+        \PY{n}{i} \PY{o}{+=} \PY{l+m+mi}{1}
+    \PY{k}{end}
+
+    \PY{k}{return} \PY{n}{start}\PY{p}{;} 
+\PY{k}{end}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{10}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+path\_track (generic function with 1 method)
+\end{Verbatim}
+\end{tcolorbox}
+        
+    Notice that this function is \emph{not} general and will only work for
+two-variable systems in variables \(x\) and \(y\). This can easily be
+modified by small changes to our code. We then evaluate our function
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{11}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c}{\PYZsh{}construct System}
+\PY{n+nd}{@var} \PY{n}{x} \PY{n}{y} \PY{n}{t} 
+\PY{n}{fg1} \PY{o}{=} \PY{p}{(}\PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{4} \PY{o}{+} \PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{4} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{)} \PY{o}{*} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{+} \PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{p}{)} \PY{o}{+} \PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{5} \PY{o}{*} \PY{n}{y}\PY{p}{)} \PY{o}{*} \PY{n}{t} \PY{o}{+} \PY{p}{(}\PY{l+m+mi}{1} \PY{o}{\PYZhy{}} \PY{n}{t}\PY{p}{)} \PY{o}{*} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{6} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{fg2} \PY{o}{=} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{+} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{x}\PY{o}{*}\PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{o}{/}\PY{l+m+mi}{2}\PY{p}{)} \PY{o}{*} \PY{n}{t} \PY{o}{+} \PY{p}{(}\PY{l+m+mi}{1} \PY{o}{\PYZhy{}} \PY{n}{t}\PY{p}{)} \PY{o}{*} \PY{p}{(}\PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{3} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{)}
+\PY{n}{FS} \PY{o}{=} \PY{n}{System}\PY{p}{(}\PY{p}{[}\PY{n}{fg1}\PY{p}{,} \PY{n}{fg2}\PY{p}{]}\PY{p}{)}
+
+\PY{n}{start\PYZus{}sol} \PY{o}{=} \PY{p}{[}\PY{n}{exp}\PY{p}{(}\PY{n+nb}{im}\PY{o}{*}\PY{l+m+mi}{0}\PY{o}{*}\PY{n+nb}{π}\PY{o}{/}\PY{l+m+mi}{6}\PY{p}{)}\PY{p}{,} \PY{n}{exp}\PY{p}{(}\PY{n+nb}{im}\PY{o}{*}\PY{l+m+mi}{0}\PY{o}{*}\PY{n+nb}{π}\PY{o}{/}\PY{l+m+mi}{3}\PY{p}{)}\PY{p}{]}
+
+\PY{n}{Δt} \PY{o}{=} \PY{l+m+mf}{0.001}
+
+\PY{n}{path\PYZus{}track}\PY{p}{(}\PY{n}{FS}\PY{p}{,} \PY{n}{start\PYZus{}sol}\PY{p}{,} \PY{n}{Δt}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{11}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+2-element Vector\{ComplexF64\}:
+  0.8209788924342625 - 1.2096476015712636e-18im
+ -0.6971326459489465 - 3.947676315116146e-17im
+\end{Verbatim}
+\end{tcolorbox}
+        
+    Note that this is one of the points that \texttt{HomotopyContinuation}
+got! Let's now find \emph{all} of the points by defining yet another
+function that scans all the first points we give it and then solves.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{12}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{k}{function} \PY{n}{homotopy\PYZus{}solve}\PY{p}{(}\PY{n}{H}\PY{o}{::}\PY{k+kt}{System}\PY{p}{)}
+
+    \PY{c}{\PYZsh{}set time step}
+    \PY{n}{Δt} \PY{o}{=} \PY{l+m+mf}{0.001}
+
+    \PY{c}{\PYZsh{}open array for appending solutions}
+    \PY{n}{solutions} \PY{o}{=} \PY{p}{[}\PY{p}{]}
+
+    \PY{c}{\PYZsh{}compute all solutions}
+    \PY{c}{\PYZsh{}this only works for two equations which have degrees of 6 and 3 respectively }
+    \PY{k}{for} \PY{n}{i} \PY{k}{in} \PY{l+m+mi}{0}\PY{o}{:}\PY{l+m+mi}{5}
+        \PY{k}{for} \PY{n}{j} \PY{k}{in} \PY{l+m+mi}{0}\PY{o}{:}\PY{l+m+mi}{2}
+            \PY{n}{start} \PY{o}{=} \PY{p}{[}\PY{n}{exp}\PY{p}{(}\PY{n}{i}\PY{o}{*}\PY{n+nb}{im}\PY{o}{*}\PY{l+m+mi}{2}\PY{o}{*}\PY{n+nb}{π}\PY{o}{/}\PY{l+m+mi}{6}\PY{p}{)}\PY{p}{,} \PY{n}{exp}\PY{p}{(}\PY{n}{j}\PY{o}{*}\PY{n+nb}{im}\PY{o}{*}\PY{l+m+mi}{2}\PY{o}{*}\PY{n+nb}{π}\PY{o}{/}\PY{l+m+mi}{3}\PY{p}{)}\PY{p}{]}
+            \PY{n}{sol} \PY{o}{=} \PY{n}{path\PYZus{}track}\PY{p}{(}\PY{n}{H}\PY{p}{,} \PY{n}{start}\PY{p}{,} \PY{n}{Δt}\PY{p}{)}
+            \PY{n}{push!}\PY{p}{(}\PY{n}{solutions}\PY{p}{,} \PY{n}{sol}\PY{p}{)}
+        \PY{k}{end}
+    \PY{k}{end}
+
+    \PY{k}{return} \PY{n}{solutions}
+
+\PY{k}{end}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{12}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+homotopy\_solve (generic function with 1 method)
+\end{Verbatim}
+\end{tcolorbox}
+        
+    Notice that, again, our function is \emph{not} general. Now it can only
+solve the two variable case with polynomial degrees of six and three as
+our problem is. This can be easily changed by small modifications of our
+code. We then find the solutions by implementing our method.
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{13}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c}{\PYZsh{}solve them thangs}
+\PY{n}{sol2} \PY{o}{=} \PY{n}{homotopy\PYZus{}solve}\PY{p}{(}\PY{n}{FS}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{13}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+18-element Vector\{Any\}:
+ ComplexF64[0.8209788924342625 - 1.2096476015712636e-18im, -0.6971326459489465 -
+3.947676315116146e-17im]
+ ComplexF64[0.9443571312488817 + 0.3118635017972665im, 0.3208381852903997 +
+0.9677296009728291im]
+ ComplexF64[0.9443571312488817 - 0.3118635017972665im, 0.3208381852903997 -
+0.9677296009728291im]
+ ComplexF64[1.713294137558267 + 0.5813863945698415im, 0.04751413478085409 -
+1.2527929510076878im]
+ ComplexF64[0.07565391048031049 + 0.9487419814734106im, -0.24800445792173492 +
+0.6838307098593375im]
+ ComplexF64[0.8999179208471724 + 1.577903428960801e-20im, -1.244182761342273 -
+2.0837887478012815e-18im]
+ ComplexF64[0.06944255588971956 + 1.0734210145259258im, 0.2852544211796043 -
+0.7076856100161801im]
+ ComplexF64[-1.0665536440076715 + 0.1424944286215246im, -0.3998429331325369 +
+0.07871238147493335im]
+ ComplexF64[1.0866676911062139 + 0.32907006699787644im, -0.2404810670866118 -
+1.1350215823993675im]
+ ComplexF64[0.8209788924342625 - 1.2096476015712636e-18im, -0.6971326459489465 -
+3.947676315116146e-17im]
+ ComplexF64[-1.6714213928380037 - 1.0186441737974984e-16im, 0.655205185872041 -
+1.3262203461352321e-17im]
+ ComplexF64[-1.6714213928380037 + 1.0186441737975248e-16im, 0.655205185872041 +
+1.3262203461352648e-17im]
+ ComplexF64[0.06944255588971956 - 1.0734210145259258im, 0.2852544211796043 +
+0.7076856100161801im]
+ ComplexF64[1.0866676911062139 - 0.32907006699787644im, -0.2404810670866118 +
+1.1350215823993675im]
+ ComplexF64[-1.0665536440076715 - 0.1424944286215246im, -0.3998429331325369 -
+0.07871238147493335im]
+ ComplexF64[1.713294137558267 - 0.5813863945698415im, 0.04751413478085409 +
+1.2527929510076878im]
+ ComplexF64[0.8999179208471724 - 1.577903428960801e-20im, -1.244182761342273 +
+2.0837887478012815e-18im]
+ ComplexF64[0.07565391048031049 - 0.9487419814734106im, -0.24800445792173492 -
+0.6838307098593375im]
+\end{Verbatim}
+\end{tcolorbox}
+        
+    Notice that these are the same solutions that
+\texttt{HomotopyContinuation} got! Discrepancies arrise for values that
+are effectively zero, otherwise our answer is exactly the same as the
+above solution.
+
+\hypertarget{conclusions}{%
+\section{Conclusions}\label{conclusions}}
+
+We were able to implement concepts of Homotopy Coninuation to find all
+of the solutions to our system of equations. Of course, making our
+functions general, i.e.~able to solve \emph{any} system of equations is
+possible, but putting the work in to implement this is rather pointless
+as \texttt{HomotopyContinuation.jl} does a fantastic job of solving any
+system of equations in just a few lines of code (and we're already using
+functions from \texttt{HomotopyContinuation.jl} for our implementation).
+The above implementation shows, however, how powerful techniques in
+Homotopy Continuation can be in solving polynomial equations and how
+easy these methods are to implement.
+
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+\end{document}

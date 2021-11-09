@@ -1,0 +1,42 @@
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{1}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c}{\PYZsh{} load packages}
+\PY{k}{using} \PY{n}{HomotopyContinuation}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{2}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{c}{\PYZsh{} declare variables x and y}
+\PY{n+nd}{@var} \PY{n}{x} \PY{n}{y}
+\PY{c}{\PYZsh{} define the polynomials}
+\PY{n}{f₁} \PY{o}{=} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{4} \PY{o}{+} \PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{4} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{)} \PY{o}{*} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{+} \PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{p}{)} \PY{o}{+} \PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{5} \PY{o}{*} \PY{n}{y}
+\PY{n}{f₂} \PY{o}{=} \PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{+} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{x}\PY{o}{*}\PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{o}{/}\PY{l+m+mi}{2}
+\PY{n}{F} \PY{o}{=} \PY{n}{System}\PY{p}{(}\PY{p}{[}\PY{n}{f₁}\PY{p}{,} \PY{n}{f₂}\PY{p}{]}\PY{p}{)}
+\PY{n}{result} \PY{o}{=} \PY{n}{solve}\PY{p}{(}\PY{n}{F}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+\textcolor{ansi-green}{Tracking 18 paths{\ldots} 100\%|██████████████████████████████| Time:
+0:00:26}
+\textcolor{ansi-blue}{  \# paths tracked:                  18}
+\textcolor{ansi-blue}{  \# non-singular solutions (real):  18 (4)}
+\textcolor{ansi-blue}{  \# singular endpoints (real):      0 (0)}
+\textcolor{ansi-blue}{  \# total solutions (real):         18 (4)}
+    \end{Verbatim}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{2}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+Result with 18 solutions
+========================
+• 18 paths tracked
+• 18 non-singular solutions (4 real)
+• random\_seed: 0x6a9bef16
+• start\_system: :polyhedral
+
+\end{Verbatim}
+\end{tcolorbox}
