@@ -6,3 +6,4 @@ The following repo contains projects completed in MATH 555, Computational Algebr
 
 1. Exploring the Clifford Torus
 2. Implementing the Newton-Ralphson Method for solving equations and systems of multivariable equations. 
+3. Using Homotopy Continuation to find _all_ solutions to systems of equations. 
