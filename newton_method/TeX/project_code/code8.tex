@@ -1,0 +1,18 @@
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{8}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{f}\PY{p}{(}\PY{n}{x}\PY{p}{,} \PY{n}{y}\PY{p}{)} \PY{o}{=} \PY{p}{[}\PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{4} \PY{o}{+} \PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{4} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{)} \PY{o}{*} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{+} \PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{p}{)} \PY{o}{+} \PY{p}{(}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{5}\PY{p}{)} \PY{o}{*} \PY{n}{y}\PY{p}{]}
+\PY{n}{p} \PY{o}{=} \PY{p}{[}\PY{l+m+mf}{6.0}\PY{p}{,} \PY{l+m+mf}{6.0}\PY{p}{]}
+\PY{n}{p\PYZus{}sol}\PY{p}{,} \PY{n}{steps\PYZus{}x}\PY{p}{,} \PY{n}{steps\PYZus{}y} \PY{o}{=} \PY{n}{newton\PYZus{}solve}\PY{p}{(}\PY{n}{p}\PY{p}{,} \PY{n}{f}\PY{p}{)}
+\PY{n}{p\PYZus{}sol}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{8}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+2-element Vector\{Float64\}:
+ 0.7143919259772923
+ 1.087335033742158
+\end{Verbatim}
+\end{tcolorbox}

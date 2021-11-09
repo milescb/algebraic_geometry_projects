@@ -1,0 +1,28 @@
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{6}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{f}\PY{p}{(}\PY{n}{x1}\PY{p}{,} \PY{n}{x2}\PY{p}{,} \PY{n}{x3}\PY{p}{,} \PY{n}{x4}\PY{p}{,} \PY{n}{λ1}\PY{p}{,} \PY{n}{λ2}\PY{p}{)} \PY{o}{=} 
+    \PY{p}{[}\PY{n}{x1} \PY{o}{+} \PY{n}{x2} \PY{o}{+} \PY{n}{x3} \PY{o}{+} \PY{n}{x4} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{,} 
+    \PY{n}{x1}\PY{o}{*}\PY{n}{x4} \PY{o}{\PYZhy{}} \PY{n}{x2}\PY{o}{*}\PY{n}{x3}\PY{p}{,} 
+    \PY{l+m+mi}{2}\PY{o}{*}\PY{p}{(}\PY{n}{x1} \PY{o}{\PYZhy{}} \PY{l+m+mi}{1}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{n}{λ1} \PY{o}{\PYZhy{}} \PY{n}{λ2}\PY{o}{*}\PY{n}{x4}\PY{p}{,} 
+    \PY{l+m+mi}{2}\PY{o}{*}\PY{p}{(}\PY{n}{x2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{5}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{n}{λ1} \PY{o}{+} \PY{n}{λ2}\PY{o}{*}\PY{n}{x3}\PY{p}{,} 
+    \PY{l+m+mi}{2}\PY{o}{*}\PY{p}{(}\PY{n}{x3} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{n}{λ1} \PY{o}{+} \PY{n}{λ2}\PY{o}{*}\PY{n}{x2}\PY{p}{,} 
+    \PY{l+m+mi}{2}\PY{o}{*}\PY{p}{(}\PY{n}{x4} \PY{o}{\PYZhy{}} \PY{l+m+mi}{3}\PY{p}{)} \PY{o}{\PYZhy{}} \PY{n}{λ1} \PY{o}{\PYZhy{}} \PY{n}{λ2}\PY{o}{*}\PY{n}{x1}\PY{p}{]}
+\PY{n}{p} \PY{o}{=} \PY{n}{randn}\PY{p}{(}\PY{l+m+mi}{6}\PY{p}{)}
+\PY{n}{p\PYZus{}sol}\PY{p}{,} \PY{n}{steps\PYZus{}x}\PY{p}{,} \PY{n}{steps\PYZus{}y} \PY{o}{=} \PY{n}{newton\PYZus{}solve}\PY{p}{(}\PY{n}{p}\PY{p}{,} \PY{n}{f}\PY{p}{)}
+\PY{n}{p\PYZus{}sol}
+\end{Verbatim}
+\end{tcolorbox}
+
+            \begin{tcolorbox}[breakable, size=fbox, boxrule=.5pt, pad at break*=1mm, opacityfill=0]
+\prompt{Out}{outcolor}{6}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+6-element Vector\{Float64\}:
+ -1.6019431755432922
+  2.412543396773429
+ -0.3743000249732863
+  0.5636998037431494
+ -5.117655226373716
+ -0.1529734872005719
+\end{Verbatim}
+\end{tcolorbox}

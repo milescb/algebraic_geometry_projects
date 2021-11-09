@@ -1,0 +1,18 @@
+    \begin{tcolorbox}[breakable, size=fbox, boxrule=1pt, pad at break*=1mm,colback=cellbackground, colframe=cellborder]
+\prompt{In}{incolor}{5}{\boxspacing}
+\begin{Verbatim}[commandchars=\\\{\}]
+\PY{n}{f\PYZus{}surf1}\PY{p}{(}\PY{n}{x}\PY{p}{,} \PY{n}{y}\PY{p}{)} \PY{o}{=} \PY{l+m+mi}{8}\PY{o}{*}\PY{n}{x}\PY{o}{\PYZca{}}\PY{l+m+mi}{3} \PY{o}{+} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{2} \PY{o}{\PYZhy{}} \PY{l+m+mi}{2}\PY{o}{*}\PY{n}{x}
+\PY{n}{f\PYZus{}surf2}\PY{p}{(}\PY{n}{x}\PY{p}{,} \PY{n}{y}\PY{p}{)} \PY{o}{=} \PY{l+m+mi}{4}\PY{o}{*}\PY{n}{y}\PY{o}{\PYZca{}}\PY{l+m+mi}{3} \PY{o}{+} \PY{l+m+mi}{4}\PY{o}{*}\PY{n}{x}\PY{o}{*}\PY{n}{y} \PY{o}{\PYZhy{}} \PY{p}{(}\PY{l+m+mi}{2}\PY{o}{/}\PY{l+m+mi}{3}\PY{p}{)}\PY{o}{*}\PY{n}{y}
+\PY{n}{scatter}\PY{p}{(}\PY{n}{steps\PYZus{}x}\PY{p}{,} \PY{n}{steps\PYZus{}y}\PY{p}{,} \PY{n}{color} \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{red}\PY{l+s}{\PYZdq{}}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{l+s}{\PYZdq{}}\PY{l+s}{Newton Algorithm}\PY{l+s}{\PYZdq{}}\PY{p}{,} \PY{n}{xlabel} \PY{o}{=} \PY{l+s+sa}{L}\PY{l+s}{\PYZdq{}}\PY{l+s}{x}\PY{l+s}{\PYZdq{}}\PY{p}{,} \PY{n}{ylabel} \PY{o}{=} \PY{l+s+sa}{L}\PY{l+s}{\PYZdq{}}\PY{l+s}{y}\PY{l+s}{\PYZdq{}}\PY{p}{,} \PY{n}{legend}\PY{o}{=}\PY{l+s+ss}{:bottomright}\PY{p}{)}
+\PY{n}{implicit\PYZus{}plot!}\PY{p}{(}\PY{n}{f\PYZus{}surf1}\PY{p}{;} \PY{n}{xlims}\PY{o}{=}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{,} \PY{n}{ylims}\PY{o}{=}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{l+s+sa}{L}\PY{l+s}{\PYZdq{}}\PY{l+s}{\PYZbs{}}\PY{l+s}{partial f / }\PY{l+s}{\PYZbs{}}\PY{l+s}{partial x}\PY{l+s}{\PYZdq{}}\PY{p}{,} \PY{n}{line} \PY{o}{=} \PY{p}{(}\PY{l+s+ss}{:purple}\PY{p}{)}\PY{p}{)}
+\PY{n}{implicit\PYZus{}plot!}\PY{p}{(}\PY{n}{f\PYZus{}surf2}\PY{p}{;} \PY{n}{xlims}\PY{o}{=}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{,} \PY{n}{ylims}\PY{o}{=}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{2}\PY{p}{,}\PY{l+m+mi}{2}\PY{p}{)}\PY{p}{,} \PY{n}{label} \PY{o}{=} \PY{l+s+sa}{L}\PY{l+s}{\PYZdq{}}\PY{l+s}{\PYZbs{}}\PY{l+s}{partial f / }\PY{l+s}{\PYZbs{}}\PY{l+s}{partial y}\PY{l+s}{\PYZdq{}}\PY{p}{)}
+\end{Verbatim}
+\end{tcolorbox}
+ 
+            
+\prompt{Out}{outcolor}{5}{}
+    
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{project_files/project_8_0.pdf}
+    \end{center}
+    { \hspace*{\fill} \\}
