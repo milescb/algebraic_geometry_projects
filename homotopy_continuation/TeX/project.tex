@@ -39,7 +39,7 @@ This can very simply be done using hometopy continuation and the package
 method}\label{implementing-our-own-method}}
 
 In order to better understand this process we implement our own method
-for solving. This involves first taking an euler step, that is,
+for solving. This involves first taking an Euler step, that is,
 essentially solving a system of ODEs using the Euler method, and then
 correcting our quasi-solution by using the Newton method.
 
@@ -62,7 +62,7 @@ by the Euler method as
  \]
 
 Note that we know that we have \(H(x,t) = 0\) as we started with a
-solution! Additionaly, we require that
+solution! Additionally, we require that
 \(H(x + \Delta x, t + \Delta t) = 0\) and we know what our time step
 \(\Delta t\) is. Thus, we need only solve the system
 
@@ -71,10 +71,10 @@ solution! Additionaly, we require that
 \]
 
 for \(\Delta x\). We then update our values of \(t\) and \(x\) by
-incrementing by \(\Delta t\) and \(\Delta x\) and then implement Newton
+incrementin by \(\Delta t\) and \(\Delta x\) and then implement Newton
 to find values of \(t\) and \(x\) that lie on our curve. Finally, we
 step over all \(\Delta t\) until we get to \(t = 1\) at which point
-\(x\) will be a solution to our orriginal system!
+\(x\) will be a solution to our original system!
 
     \hypertarget{euler-step}{%
 \subsubsection{Euler Step}\label{euler-step}}
@@ -88,7 +88,6 @@ We write a function to compute a Euler step.
     
     \PY{c}{\PYZsh{}make four element Vector}
     \PY{n}{xt} \PY{o}{=} \PY{n}{append!}\PY{p}{(}\PY{n}{x}\PY{p}{,} \PY{n}{t}\PY{p}{)}
-
     \PY{c}{\PYZsh{}get indices for vector subsetting}
     \PY{n}{index} \PY{o}{=} \PY{p}{[}\PY{p}{]}
     \PY{k}{for} \PY{n}{i} \PY{k}{in} \PY{l+m+mi}{2}\PY{o}{:}\PY{n}{length}\PY{p}{(}\PY{n}{x}\PY{p}{)}
@@ -294,7 +293,7 @@ Result with 3 solutions
 \subsubsection{Path Tracking and
 Solving!}\label{path-tracking-and-solving}}
 
-We finally combine the two functions and return to the orriginal problem
+We finally combine the two functions and return to the original problem
 to solve the system of two equations. We will use
 
 \[
@@ -482,7 +481,7 @@ above solution.
 \hypertarget{conclusions}{%
 \section{Conclusions}\label{conclusions}}
 
-We were able to implement concepts of Homotopy Coninuation to find all
+We were able to implement concepts of Homotopy Continuation to find all
 of the solutions to our system of equations. Of course, making our
 functions general, i.e.~able to solve \emph{any} system of equations is
 possible, but putting the work in to implement this is rather pointless
