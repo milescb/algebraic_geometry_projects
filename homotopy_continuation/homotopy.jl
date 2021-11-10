@@ -101,7 +101,7 @@ function homotopy_solve(H::System)
     Δt = 0.001
 
     #open array for appending solutions
-    solutions = []
+    solutions = Vector{Vector{ComplexF64}}(undef, 0)
 
     #compute all solutions
     #this only works for two equations which have degrees of 6 and 3 respectively 
